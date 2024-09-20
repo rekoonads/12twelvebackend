@@ -32,7 +32,7 @@ const shopify = shopifyApi({
   isEmbeddedApp: true,
   isCustomStoreApp: false,
   userAgentPrefix: "Custom prefix",
-  adminApiAccessToken: "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",
+  adminApiAccessToken: process.env.SHOPIFY_ACCESS_TOKEN,
   customShopDomains: ["www.taare.shop"],
   billing: {
     "My plan": {
