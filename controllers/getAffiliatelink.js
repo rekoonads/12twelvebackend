@@ -1,3 +1,5 @@
+import Affiliate from "../models/Affiliate.js";
+
 export default async (req, res) => {
   try {
     const val = req.query.val;
