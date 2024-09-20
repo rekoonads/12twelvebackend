@@ -5,6 +5,11 @@ import axios from "axios";
 import cors from "cors";
 const app = express();
 import apiRouter from "./routes/api.js";
+import "@shopify/shopify-api/adapters/node";
+import "@shopify/shopify-api/adapters/cf-worker";
+import "@shopify/shopify-api/adapters/web-api";
+import { shopifyApi, ApiVersion, BillingInterval } from "@shopify/shopify-api";
+import { restResources } from "@shopify/shopify-api/rest/admin/2024-07";
 
 app.use(express.json());
 
@@ -16,34 +21,83 @@ app.use(
   })
 );
 
-app.get("/data", (req, res) => {
-  //     console.log("called");
-  //     const accessToken = 'acess token'; // Use your Admin API access token
-  //   const shopName = 'Taare'; // E.g., 'yourshopname'
-  //   const url = `https://${shopName}.myshopify.com/admin/api/2024-07/orders.json`;
-  //   const response = axios.get(url, {
-  //     headers: {
-  //       'X-Shopify-Access-Token': accessToken,
-  //     },
-  //     params: {
-  //       status: 'any',
-  //       fields: 'id,created_at,total_price,note_attributes',
-  //     },
-  //   });
-  // console.log("orders", response.data.orders);
-  // Parse the note_attributes to find the referrer for each order
-  //   const ordersWithReferrers = response.data.orders.map(order => {
-  //     const referrer = order.note_attributes.find(attr => attr.name === 'referrer');
-  //     return {
-  //       order_id: order.id,
-  //       created_at: order.created_at,
-  //       total_price: order.total_price,
-  //       referrer: referrer ? referrer.value : 'N/A',
-  //     };
-  //   });
-  // Return the JSON result
-  //   return res.json(ordersWithReferrers);
+const shopify = shopifyApi({
+  // The next 4 values are typically read from environment variables for added security
+  apiKey: "08446ba009a28878440d8a0fec26dfce",
+  apiSecretKey: "1bbedbe9addb9336b9ba517db1ead75a",
+  scopes: ["read_orders"],
+  hostName: "https://sweet-ostrich-mostly.ngrok-free.app",
+  hostScheme: "https",
+  apiVersion: ApiVersion.July24,
+  isEmbeddedApp: true,
+  isCustomStoreApp: false,
+  userAgentPrefix: "Custom prefix",
+  adminApiAccessToken: "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",
+  customShopDomains: ["www.taare.shop"],
+  billing: {
+    "My plan": {
+      amount: 5.0,
+      currencyCode: "USD",
+      interval: BillingInterval.OneTime,
+    },
+  },
+  // logger: {
+  //   log: (severity, message) => {
+  //     myAppsLogFunction(severity, message);
+  //   },
+  // },
+  restResources,
+  future: {
+    // ...
+  },
 });
+
+console.log("SHOPIFY", shopify);
+
+app.get("/data", async (req, res) => {
+  try {
+    const orders = await shopify.rest.Order.all({
+      session: {
+        accessToken: "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",
+        shop: "www.taare.shop",
+      },
+      status: "any",
+    });
+
+    console.log("Orders Response:", orders);
+
+    // Ensure that `orders` is an array
+    if (!Array.isArray(orders)) {
+      return res
+        .status(500)
+        .json({
+          error: "Expected an array but got something else",
+          data: orders,
+        });
+    }
+
+    // Parse the note_attributes to find the referrer for each order
+    const ordersWithReferrers = orders.map((order) => {
+      const referrer = order.note_attributes.find(
+        (attr) => attr.name === "referrer"
+      );
+      return {
+        order_id: order.id,
+        created_at: order.created_at,
+        total_price: order.total_price,
+        referrer: referrer ? referrer.value : "N/A",
+      };
+    });
+
+    return res.json(ordersWithReferrers);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return res
+      .status(500)
+      .json({ error: "Error fetching orders", details: error });
+  }
+});
+
 const PORT = process.env.PORT || 8080;
 
 app.use("/", apiRouter);
