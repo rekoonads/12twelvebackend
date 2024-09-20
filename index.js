@@ -58,7 +58,7 @@ app.get("/data", async (req, res) => {
   try {
     const orders = await shopify.rest.Order.all({
       session: {
-        accessToken: "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",
+        accessToken: process.env.SHOPIFY_ACCESS_TOKEN,
         shop: "www.taare.shop",
       },
       status: "any",
@@ -68,12 +68,10 @@ app.get("/data", async (req, res) => {
 
     // Ensure that `orders` is an array
     if (!Array.isArray(orders)) {
-      return res
-        .status(500)
-        .json({
-          error: "Expected an array but got something else",
-          data: orders,
-        });
+      return res.status(500).json({
+        error: "Expected an array but got something else",
+        data: orders,
+      });
     }
 
     // Parse the note_attributes to find the referrer for each order
