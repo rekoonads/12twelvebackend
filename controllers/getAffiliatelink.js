@@ -5,19 +5,19 @@ export default async (req, res) => {
     const val = req.query.val;
     console.log("searched val : - ", val);
 
-    const affiliate = await Affiliate.findOneAndUpdate(
-      { generatedVal: val },
-      { $inc: { impression: 1 } },
-      { new: true }
-    );
+    const affiliate = await Affiliate.findOne({ generatedVal: val });
 
     if (!affiliate) return res.status(404).send("Affiliate link not found");
 
-    // Add UTM parameters for better tracking on Shopify
-    const redirectUrl = `${affiliate.redirectLink}?utm_source=https://www.my12twelve.com/&utm_medium=referral&utm_campaign=affiliate&utm_referrer=https://www.my12twelve.com/`;
+    const redirectUrl = new URL(affiliate.redirectLink);
+    redirectUrl.searchParams.append("utm_source", "my12twelve");
+    redirectUrl.searchParams.append("utm_medium", "affiliate");
+    redirectUrl.searchParams.append("utm_campaign", val);
 
-    console.log("Redirecting to:", redirectUrl);
-    res.redirect(redirectUrl);
+    console.log("Full redirect URL:", redirectUrl.toString());
+
+    // Instead of redirecting, let's send the URL back for verification
+    res.json({ redirectUrl: redirectUrl.toString() });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

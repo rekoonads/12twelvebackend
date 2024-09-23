@@ -1,19 +1,17 @@
+import mongoose from "mongoose";
 
-import mongoose, { Schema } from 'mongoose';
+const affiliateSchema = new mongoose.Schema({
+  generatedVal: String,
+  redirectLink: String,
+  impression: { type: Number, default: 0 },
+  redirects: [
+    {
+      uniqueId: String,
+      timestamp: Date,
+    },
+  ],
+});
 
-// Define the payment schema
-const affiliateSchema = new Schema(
-  {
-   redirectLink :{ type :String,required:true},
-   generatedVal :{ type : String,required:true},
-   impression :{ type :Number,default:0}
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const Affiliate = mongoose.model('affiliate', affiliateSchema);
+const Affiliate = mongoose.model("Affiliate", affiliateSchema);
 
 export default Affiliate;
-
