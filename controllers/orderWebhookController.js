@@ -29,7 +29,7 @@ export const handleOrderWebhook = async (req, res) => {
       return res.status(400).json({ error: "Invalid landing site URL" });
     }
   }
-
+  order.referring_site("https://www.test.com")
   if (referralId) {
     try {
       await shopify.rest.Order.update({
