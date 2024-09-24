@@ -1,3 +1,5 @@
+import { shopify } from "../index.js";
+
 export const getOrdersData = async (req, res) => {
   try {
     const orders = await shopify.rest.Order.all({
