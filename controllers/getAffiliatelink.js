@@ -13,6 +13,7 @@ export default async (req, res) => {
     redirectUrl.searchParams.append("utm_source", "my12twelve");
     redirectUrl.searchParams.append("utm_medium", "affiliate");
     redirectUrl.searchParams.append("utm_campaign", val);
+    redirectUrl.searchParams.append("referring_site","https://www.test.com")
 
     console.log("Full redirect URL:", redirectUrl.toString());
 
