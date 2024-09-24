@@ -1,12 +1,11 @@
 import { shopify } from "../index.js";
 
 export const handleOrderWebhook = async (req, res) => {
-  const order = req.body;
-  let referralId = null;
+  try {
+    const order = req.body;
+    let referralId = null;
 
-  if (order.landing_site) {
-    try {
-      // Ensure landing_site is a full URL
+    if (order.landing_site) {
       const landingSiteUrl = new URL(
         order.landing_site.startsWith("http")
           ? order.landing_site
@@ -24,14 +23,9 @@ export const handleOrderWebhook = async (req, res) => {
       ) {
         referralId = utmCampaign;
       }
-    } catch (error) {
-      console.error("Invalid landing site URL:", error);
-      return res.status(400).json({ error: "Invalid landing site URL" });
     }
-  }
-  order.referring_site("https://www.test.com")
-  if (referralId) {
-    try {
+
+    if (referralId) {
       await shopify.rest.Order.update({
         session: {
           accessToken: process.env.SHOPIFY_ACCESS_TOKEN,
@@ -47,11 +41,15 @@ export const handleOrderWebhook = async (req, res) => {
           },
         ],
       });
-      console.log(`Updated order ${order.id} with referral ID ${referralId}`);
-    } catch (error) {
-      console.error("Error updating order:", error);
-    }
-  }
 
-  res.sendStatus(200);
+      console.log(`Updated order ${order.id} with referral ID ${referralId}`);
+    } else {
+      console.log(`No referral ID found for order ${order.id}`);
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Error processing order webhook:", error);
+    res.sendStatus(500);
+  }
 };

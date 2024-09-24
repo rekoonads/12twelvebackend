@@ -4,18 +4,23 @@ import "@shopify/shopify-api/adapters/node";
 import "@shopify/shopify-api/adapters/web-api";
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-07";
 import cors from "cors";
-import "dotenv/config";
+import dotenv from "dotenv";
 import express from "express";
 import { mongo } from "./db/mongoConnection.js";
 import apiRouter from "./routes/api.js";
 import { handleOrderWebhook } from "./controllers/orderWebhookController.js";
 import { getOrdersData } from "./controllers/orderDataController.js";
 
+dotenv.config();
+
 const app = express();
+
 app.use(express.json());
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(",")
+      : "*",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   })
@@ -32,7 +37,7 @@ export const shopify = shopifyApi({
   isCustomStoreApp: false,
   userAgentPrefix: "Custom prefix",
   adminApiAccessToken: process.env.SHOPIFY_ACCESS_TOKEN,
-  customShopDomains: ["www.taare.shop"],
+  customShopDomains: [process.env.SHOP_DOMAIN],
   billing: {
     "My plan": {
       amount: 5.0,
@@ -44,28 +49,29 @@ export const shopify = shopifyApi({
 });
 
 // Webhook handler for new orders
-app.post("/webhooks/orders/create", handleOrderWebhook);
+app.post(
+  "/webhooks/orders/create",
+  express.raw({ type: "application/json" }),
+  handleOrderWebhook
+);
 
 // Endpoint to fetch orders with redirect information
 app.get("/data", getOrdersData);
 
 const PORT = process.env.PORT || 8080;
+
 app.use("/", apiRouter);
 
-let server;
-Promise.all([mongo()])
-  .then(() => {
-    server = app.listen(PORT, () => {
+async function startServer() {
+  try {
+    await mongo();
+    app.listen(PORT, () => {
       console.log(`The Server is running on ${PORT}`);
     });
-  })
-  .catch((error) => {
-    console.error(error);
-    if (server) {
-      server.close();
-    }
-    console.log("Restarting the server...");
-    server = app.listen(PORT, () => {
-      console.log(`The Server has been restarted on ${PORT}`);
-    });
-  });
+  } catch (error) {
+    console.error("Failed to start the server:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
