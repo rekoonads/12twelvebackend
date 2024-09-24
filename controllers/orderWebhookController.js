@@ -4,19 +4,29 @@ export const handleOrderWebhook = async (req, res) => {
   const order = req.body;
   let referralId = null;
 
-  // Check for UTM parameters in order's landing_site
   if (order.landing_site) {
-    const landingSiteUrl = new URL(order.landing_site);
-    const utmSource = landingSiteUrl.searchParams.get("utm_source");
-    const utmMedium = landingSiteUrl.searchParams.get("utm_medium");
-    const utmCampaign = landingSiteUrl.searchParams.get("utm_campaign");
+    try {
+      // Ensure landing_site is a full URL
+      const landingSiteUrl = new URL(
+        order.landing_site.startsWith("http")
+          ? order.landing_site
+          : `https://www.taare.shop${order.landing_site}`
+      );
 
-    if (
-      utmSource === "my12twelve" &&
-      utmMedium === "affiliate" &&
-      utmCampaign
-    ) {
-      referralId = utmCampaign;
+      const utmSource = landingSiteUrl.searchParams.get("utm_source");
+      const utmMedium = landingSiteUrl.searchParams.get("utm_medium");
+      const utmCampaign = landingSiteUrl.searchParams.get("utm_campaign");
+
+      if (
+        utmSource === "my12twelve" &&
+        utmMedium === "affiliate" &&
+        utmCampaign
+      ) {
+        referralId = utmCampaign;
+      }
+    } catch (error) {
+      console.error("Invalid landing site URL:", error);
+      return res.status(400).json({ error: "Invalid landing site URL" });
     }
   }
 

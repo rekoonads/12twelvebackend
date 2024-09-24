@@ -1,5 +1,3 @@
-import { shopify } from "../index.js";
-
 export const getOrdersData = async (req, res) => {
   try {
     const orders = await shopify.rest.Order.all({
@@ -10,6 +8,9 @@ export const getOrdersData = async (req, res) => {
       status: "any",
     });
 
+    // Log raw order data for debugging
+    console.log("Fetched Orders:", orders);
+
     if (!Array.isArray(orders)) {
       return res.status(500).json({
         error: "Expected an array but got something else",
@@ -19,7 +20,9 @@ export const getOrdersData = async (req, res) => {
 
     const ordersWithReferrals = await Promise.all(
       orders.map(async (order) => {
-        // Fetch metafields for each order
+        // Log the raw order object to check note_attributes and referring_site
+        console.log("Order Object:", order);
+
         const metafields = await shopify.rest.Metafield.all({
           session: {
             accessToken: process.env.SHOPIFY_ACCESS_TOKEN,
@@ -35,7 +38,8 @@ export const getOrdersData = async (req, res) => {
           order_id: order.id,
           created_at: order.created_at,
           total_price: order.total_price,
-          referring_site: order.referring_site || "N/A",
+          note_attributes: order.note_attributes || "N/A", // Check if this exists
+          referring_site: order.referring_site || "N/A", // Check if this exists
           utm_source: order.source_name || "N/A",
           utm_medium: order.source_medium || "N/A",
           utm_campaign: order.source_identifier || "N/A",
