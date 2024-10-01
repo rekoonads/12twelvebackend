@@ -2,7 +2,7 @@ import Affiliate from "../models/Affiliate.js";
 
 export default async (req, res) => {
   try {
-    const { redirectLink, generatedVal } = req.body;
+    const { redirectLink, generatedVal,userId } = req.body;
 
     if (!redirectLink || !generatedVal) {
       return res.status(400).json({ message: "Missing required parameters" });
@@ -16,6 +16,7 @@ export default async (req, res) => {
     const newAffiliate = new Affiliate({
       redirectLink: url.toString(),
       generatedVal,
+      userId
     });
 
     const savedAffiliate = await newAffiliate.save();
