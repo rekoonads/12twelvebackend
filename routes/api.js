@@ -14,5 +14,6 @@ router.get("/get-all-user",async (req,res)=>{
     const users = await userModel.find({});
     return res.json(users);
 });
+router.get("/get-user",)
 
 export default router;
