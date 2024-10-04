@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema } from "mongoose";
 const user = new Schema(
   {
     userId: { type: String },
@@ -6,10 +6,10 @@ const user = new Schema(
     lastName: { type: String },
     userType: { type: String },
     email: { type: String },
-    phoneNo: { type: String }
+    phoneNo: { type: String },
   },
   {
     timestamps: true,
-  },
+  }
 );
-export const userModel = model('Users', user);
+export const userModel = model("Users", user);

@@ -1,10 +1,9 @@
-import { userModel } from "../models/User";
-
+import { userModel } from "../models/User.js";
 
 export default async (req, res) => {
   try {
-    const {userId } = req.body;
-    const user = await userModel.findOne({userId});
+    const { userId } = req.body;
+    const user = await userModel.findOne({ userId });
     return res.status(500).json(user);
   } catch (error) {
     console.error("Error getting user:", error);
