@@ -3,6 +3,7 @@ import getAffiliatelink from "../controllers/getAffiliatelink.js";
 import addAffiliatelink from "../controllers/addAffiliatelink.js";
 import userCreate from "../controllers/userCreate.js";
 import { userModel } from "../models/User.js";
+import getUserbyId from "../controllers/getUserbyId.js";
 
 const router = Router();
 
