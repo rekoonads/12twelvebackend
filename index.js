@@ -60,7 +60,7 @@ app.get("/data", getOrdersData);
 
 const PORT = process.env.PORT || 8080;
 
-app.use("/", apiRouter);
+app.use("/api", apiRouter);
 
 async function startServer() {
   try {
